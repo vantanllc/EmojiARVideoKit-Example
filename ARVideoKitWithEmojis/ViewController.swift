@@ -11,69 +11,124 @@ import SpriteKit
 import ARKit
 
 class ViewController: UIViewController, ARSKViewDelegate {
+  
+  @IBOutlet var sceneView: ARSKView!
+  var recorderButton: UIButton = {
+    let button =  UIButton(type: .system)
+    button.setTitle("Record", for: .normal)
+    button.setTitleColor(.black, for: .normal)
+    button.backgroundColor = .white
+    button.frame = CGRect(x: 0, y: 0, width: 110, height: 60)
+    button.center = CGPoint(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height * 0.90)
+    button.layer.cornerRadius = button.bounds.height / 2
+    button.tag = 0
+    return button
+  } ()
+  
+  var pauseButton: UIButton = {
+    let button =  UIButton(type: .system)
+    button.setTitle("Pause", for: .normal)
+    button.setTitleColor(.black, for: .normal)
+    button.backgroundColor = .white
+    button.frame = CGRect(x: 0, y: 0, width: 60, height: 60)
+    button.center = CGPoint(x: UIScreen.main.bounds.width * 0.15, y: UIScreen.main.bounds.height * 0.90)
+    button.layer.cornerRadius = button.bounds.height / 2
+    button.alpha = 0.3
+    button.isEnabled = false
+    return button
+  } ()
+  
+  var gifButton: UIButton = {
+    let button =  UIButton(type: .system)
+    button.setTitle("GIF", for: .normal)
+    button.setTitleColor(.black, for: .normal)
+    button.backgroundColor = .white
+    button.frame = CGRect(x: 0, y: 0, width: 60, height: 60)
+    button.center = CGPoint(x: UIScreen.main.bounds.width * 0.85, y: UIScreen.main.bounds.height * 0.90)
+    button.layer.cornerRadius = button.bounds.height / 2
+    return button
+  } ()
+  
+  @objc func recorderAction(sender: UIButton) {
     
-    @IBOutlet var sceneView: ARSKView!
+  }
+  
+  @objc func pauseAction(sender: UIButton) {
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        // Set the view's delegate
-        sceneView.delegate = self
-        
-        // Show statistics such as fps and node count
-        sceneView.showsFPS = true
-        sceneView.showsNodeCount = true
-        
-        // Load the SKScene from 'Scene.sks'
-        if let scene = SKScene(fileNamed: "Scene") {
-            sceneView.presentScene(scene)
-        }
+  }
+  
+  @objc func gifAction(sender: UIButton) {
+    
+  }
+  
+  override func viewDidLoad() {
+    super.viewDidLoad()
+    
+    view.addSubview(recorderButton)
+    view.addSubview(pauseButton)
+    view.addSubview(gifButton)
+    
+    recorderButton.addTarget(self, action: #selector(recorderAction(sender:)), for: .touchUpInside)
+    pauseButton.addTarget(self, action: #selector(pauseAction(sender:)), for: .touchUpInside)
+    gifButton.addTarget(self, action: #selector(gifAction(sender:)), for: .touchUpInside)
+    
+    // Set the view's delegate
+    sceneView.delegate = self
+    
+    // Show statistics such as fps and node count
+    sceneView.showsFPS = true
+    sceneView.showsNodeCount = true
+    
+    // Load the SKScene from 'Scene.sks'
+    if let scene = SKScene(fileNamed: "Scene") {
+      sceneView.presentScene(scene)
     }
+  }
+  
+  override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        // Create a session configuration
-        let configuration = ARWorldTrackingConfiguration()
-
-        // Run the view's session
-        sceneView.session.run(configuration)
-    }
+    // Create a session configuration
+    let configuration = ARWorldTrackingConfiguration()
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        // Pause the view's session
-        sceneView.session.pause()
-    }
+    // Run the view's session
+    sceneView.session.run(configuration)
+  }
+  
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Release any cached data, images, etc that aren't in use.
-    }
+    // Pause the view's session
+    sceneView.session.pause()
+  }
+  
+  override func didReceiveMemoryWarning() {
+    super.didReceiveMemoryWarning()
+    // Release any cached data, images, etc that aren't in use.
+  }
+  
+  // MARK: - ARSKViewDelegate
+  
+  func view(_ view: ARSKView, nodeFor anchor: ARAnchor) -> SKNode? {
+    // Create and configure a node for the anchor added to the view's session.
+    let labelNode = SKLabelNode(text: "👾")
+    labelNode.horizontalAlignmentMode = .center
+    labelNode.verticalAlignmentMode = .center
+    return labelNode;
+  }
+  
+  func session(_ session: ARSession, didFailWithError error: Error) {
+    // Present an error message to the user
     
-    // MARK: - ARSKViewDelegate
+  }
+  
+  func sessionWasInterrupted(_ session: ARSession) {
+    // Inform the user that the session has been interrupted, for example, by presenting an overlay
     
-    func view(_ view: ARSKView, nodeFor anchor: ARAnchor) -> SKNode? {
-        // Create and configure a node for the anchor added to the view's session.
-        let labelNode = SKLabelNode(text: "👾")
-        labelNode.horizontalAlignmentMode = .center
-        labelNode.verticalAlignmentMode = .center
-        return labelNode;
-    }
+  }
+  
+  func sessionInterruptionEnded(_ session: ARSession) {
+    // Reset tracking and/or remove existing anchors if consistent tracking is required
     
-    func session(_ session: ARSession, didFailWithError error: Error) {
-        // Present an error message to the user
-        
-    }
-    
-    func sessionWasInterrupted(_ session: ARSession) {
-        // Inform the user that the session has been interrupted, for example, by presenting an overlay
-        
-    }
-    
-    func sessionInterruptionEnded(_ session: ARSession) {
-        // Reset tracking and/or remove existing anchors if consistent tracking is required
-        
-    }
+  }
 }
