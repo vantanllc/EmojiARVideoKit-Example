@@ -10,8 +10,8 @@ import UIKit
 import SpriteKit
 import ARKit
 
-class ViewController: UIViewController, ARSKViewDelegate {
-  
+class ViewController: UIViewController, ARSKViewDelegate, RenderARDelegate, RecordARDelegate {
+
   @IBOutlet var sceneView: ARSKView!
   var recorder: RecordAR?
   
@@ -111,13 +111,6 @@ class ViewController: UIViewController, ARSKViewDelegate {
     pauseButton.addTarget(self, action: #selector(pauseAction(sender:)), for: .touchUpInside)
     gifButton.addTarget(self, action: #selector(gifAction(sender:)), for: .touchUpInside)
     
-    recorder = RecordAR(ARSpriteKit: sceneView)
-    recorder?.inputViewOrientations = [
-      .portrait,
-      .landscapeLeft,
-      .landscapeRight
-    ]
-    
     // Set the view's delegate
     sceneView.delegate = self
     
@@ -129,6 +122,19 @@ class ViewController: UIViewController, ARSKViewDelegate {
     if let scene = SKScene(fileNamed: "Scene") {
       sceneView.presentScene(scene)
     }
+    
+    recorder = RecordAR(ARSpriteKit: sceneView)
+    recorder?.delegate = self
+    recorder?.renderAR = self
+    recorder?.onlyRenderWhileRecording = false
+    
+    
+    recorder?.inputViewOrientations = [
+      .portrait,
+      .landscapeLeft,
+      .landscapeRight
+    ]
+    recorder?.deleteCacheWhenExported = false
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -137,19 +143,26 @@ class ViewController: UIViewController, ARSKViewDelegate {
     // Create a session configuration
     let configuration = ARWorldTrackingConfiguration()
     
-    recorder?.prepare(configuration)
-    
     // Run the view's session
     sceneView.session.run(configuration)
+    
+    recorder?.prepare(configuration)
   }
   
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     
-    recorder?.rest()
-    
     // Pause the view's session
     sceneView.session.pause()
+    
+    if recorder?.status == .recording {
+      recorder?.stopAndExport()
+    }
+    
+    recorder?.onlyRenderWhileRecording = true
+    recorder?.prepare(ARWorldTrackingConfiguration())
+    
+    recorder?.rest()
   }
   
   override func didReceiveMemoryWarning() {
@@ -180,5 +193,29 @@ class ViewController: UIViewController, ARSKViewDelegate {
   func sessionInterruptionEnded(_ session: ARSession) {
     // Reset tracking and/or remove existing anchors if consistent tracking is required
     
+  }
+}
+
+//MARK: - ARVideoKit Delegate Methods
+extension ViewController {
+  func frame(didRender buffer: CVPixelBuffer, with time: CMTime, using rawBuffer: CVPixelBuffer) {
+    // Do some image/video processing.
+  }
+  
+  func recorder(didEndRecording path: URL, with noError: Bool) {
+    if noError {
+      // Do something with the video path.
+    }
+  }
+  
+  func recorder(didFailRecording error: Error?, and status: String) {
+    // Inform user an error occurred while recording.
+  }
+  
+  func recorder(willEnterBackground status: RecordARStatus) {
+    // Use this method to pause or stop video recording. Check [applicationWillResignActive(_:)](https://developer.apple.com/documentation/uikit/uiapplicationdelegate/1622950-applicationwillresignactive) for more information.
+    if status == .recording {
+      recorder?.stopAndExport()
+    }
   }
 }
