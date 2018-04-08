@@ -13,6 +13,8 @@ import ARKit
 class ViewController: UIViewController, ARSKViewDelegate {
   
   @IBOutlet var sceneView: ARSKView!
+  var recorder: RecordAR?
+  
   var recorderButton: UIButton = {
     let button =  UIButton(type: .system)
     button.setTitle("Record", for: .normal)
@@ -50,15 +52,52 @@ class ViewController: UIViewController, ARSKViewDelegate {
   } ()
   
   @objc func recorderAction(sender: UIButton) {
-    
+    if recorder?.status == .readyToRecord {
+      recorder?.record()
+   
+      setButton(sender, title: "Stop", color: .red)
+      
+      enableButton(pauseButton)
+      disableButton(gifButton)
+      
+    } else if recorder?.status == .recording || recorder?.status == .paused {
+      recorder?.stopAndExport()
+      
+      setButton(sender, title: "Record", color: .black)
+      enableButton(gifButton)
+      disableButton(pauseButton)
+    }
   }
   
   @objc func pauseAction(sender: UIButton) {
-    
+    if recorder?.status == .recording {
+      recorder?.pause()
+      
+      setButton(sender, title: "Resume", color: .blue)
+    } else if recorder?.status == .paused {
+      recorder?.record()
+      
+      setButton(sender, title: "Pause", color: .black)
+    }
   }
   
   @objc func gifAction(sender: UIButton) {
     
+  }
+  
+  private func setButton(_ button: UIButton, title: String, color: UIColor) {
+    button.setTitle(title, for: .normal)
+    button.setTitleColor(color, for: .normal)
+  }
+  
+  private func disableButton(_ button: UIButton) {
+    button.alpha = 0.3
+    button.isEnabled = false
+  }
+  
+  private func enableButton(_ button: UIButton) {
+    button.alpha = 1.0
+    button.isEnabled = true
   }
   
   override func viewDidLoad() {
@@ -71,6 +110,13 @@ class ViewController: UIViewController, ARSKViewDelegate {
     recorderButton.addTarget(self, action: #selector(recorderAction(sender:)), for: .touchUpInside)
     pauseButton.addTarget(self, action: #selector(pauseAction(sender:)), for: .touchUpInside)
     gifButton.addTarget(self, action: #selector(gifAction(sender:)), for: .touchUpInside)
+    
+    recorder = RecordAR(ARSpriteKit: sceneView)
+    recorder?.inputViewOrientations = [
+      .portrait,
+      .landscapeLeft,
+      .landscapeRight
+    ]
     
     // Set the view's delegate
     sceneView.delegate = self
@@ -91,12 +137,16 @@ class ViewController: UIViewController, ARSKViewDelegate {
     // Create a session configuration
     let configuration = ARWorldTrackingConfiguration()
     
+    recorder?.prepare(configuration)
+    
     // Run the view's session
     sceneView.session.run(configuration)
   }
   
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
+    
+    recorder?.rest()
     
     // Pause the view's session
     sceneView.session.pause()
