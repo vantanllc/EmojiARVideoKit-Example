@@ -10,7 +10,7 @@ import UIKit
 import SpriteKit
 import ARKit
 
-class ViewController: UIViewController, ARSKViewDelegate, RenderARDelegate, RecordARDelegate {
+class ViewController: UIViewController, RenderARDelegate, RecordARDelegate {
 
   @IBOutlet var sceneView: ARSKView!
   var recorder: RecordAR?
@@ -179,12 +179,18 @@ class ViewController: UIViewController, ARSKViewDelegate, RenderARDelegate, Reco
     super.didReceiveMemoryWarning()
     // Release any cached data, images, etc that aren't in use.
   }
-  
-  // MARK: - ARSKViewDelegate
+}
+
+// MARK: - ARSKView Delegate Methods
+extension ViewController {
+  var randoMoji:String {
+    let emojis = ["👾", "🤓", "🔥", "😜", "😇", "🤣", "🤗"]
+    return emojis[Int(arc4random_uniform(UInt32(emojis.count)))]
+  }
   
   func view(_ view: ARSKView, nodeFor anchor: ARAnchor) -> SKNode? {
     // Create and configure a node for the anchor added to the view's session.
-    let labelNode = SKLabelNode(text: "👾")
+    let labelNode = SKLabelNode(text: randoMoji)
     labelNode.horizontalAlignmentMode = .center
     labelNode.verticalAlignmentMode = .center
     return labelNode;
@@ -192,12 +198,10 @@ class ViewController: UIViewController, ARSKViewDelegate, RenderARDelegate, Reco
   
   func session(_ session: ARSession, didFailWithError error: Error) {
     // Present an error message to the user
-    
   }
   
   func sessionWasInterrupted(_ session: ARSession) {
     // Inform the user that the session has been interrupted, for example, by presenting an overlay
-    
   }
   
   func sessionInterruptionEnded(_ session: ARSession) {
@@ -207,7 +211,7 @@ class ViewController: UIViewController, ARSKViewDelegate, RenderARDelegate, Reco
 }
 
 //MARK: - ARVideoKit Delegate Methods
-extension ViewController {
+extension ViewController: ARSKViewDelegate {
   func frame(didRender buffer: CVPixelBuffer, with time: CMTime, using rawBuffer: CVPixelBuffer) {
     // Do some image/video processing.
   }
