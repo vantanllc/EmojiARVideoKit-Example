@@ -82,7 +82,17 @@ class ViewController: UIViewController, ARSKViewDelegate, RenderARDelegate, Reco
   }
   
   @objc func gifAction(sender: UIButton) {
+    disableButton(gifButton)
+    disableButton(recorderButton)
     
+    recorder?.gif(forDuration: 1.5, export: true) {_, _, _, exported in
+      if exported {
+        DispatchQueue.main.sync {
+          self.enableButton(self.gifButton)
+          self.enableButton(self.recorderButton)
+        }
+      }
+    }
   }
   
   private func setButton(_ button: UIButton, title: String, color: UIColor) {
